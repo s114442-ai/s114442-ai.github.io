@@ -1,0 +1,392 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body,#app{font-family:'Noto Sans KR',sans-serif;background:transparent;color:#222;}
+#app{padding:20px 16px 40px;max-width:480px;margin:0 auto;}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.header-title{font-size:22px;font-weight:700;}
+.header-sub{font-size:11px;color:#aaa;margin-top:2px;}
+.coin-box{background:#f7f7f7;border-radius:20px;padding:6px 14px;font-size:13px;font-weight:500;}
+.coin-refresh{font-size:9px;color:#aaa;margin-top:2px;text-align:right;}
+.section-label{font-size:12px;color:#bbb;font-style:italic;margin-bottom:12px;}
+.back-btn{background:none;border:none;color:#aaa;font-size:12px;cursor:pointer;margin-bottom:14px;padding:0;font-family:inherit;}
+.member-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.member-card{background:#fff;border:1.5px solid #eee;border-radius:14px;padding:14px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all 0.15s;}
+.member-card.sel{border-color:#D4467E;background:#FDEEF5;}
+.member-avatar{width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0;background:#f5f5f5;}
+.member-name{font-size:14px;font-weight:600;}
+.member-role{font-size:10px;color:#aaa;margin-top:1px;}
+.member-count{font-size:10px;color:#D4467E;margin-top:3px;font-weight:500;}
+.sel-check{width:20px;height:20px;border-radius:50%;background:#D4467E;color:#fff;font-size:11px;display:none;align-items:center;justify-content:center;flex-shrink:0;margin-left:auto;}
+.member-card.sel .sel-check{display:flex;}
+.pack-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.pack-card{background:#fff;border:1.5px solid #eee;border-radius:14px;padding:16px;cursor:pointer;position:relative;transition:all 0.15s;}
+.pack-card.sel{border-color:#D4467E;}
+.pack-card.disabled{opacity:0.5;cursor:default;}
+.pack-icon{font-size:28px;margin-bottom:8px;}
+.pack-name{font-size:13px;font-weight:500;margin-bottom:3px;}
+.pack-desc{font-size:11px;color:#aaa;}
+.pack-price{position:absolute;top:10px;right:10px;background:#FDEEF5;color:#D4467E;font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;}
+.btn-primary{width:100%;padding:13px;border-radius:10px;border:none;background:linear-gradient(135deg,#D4467E,#880E4F);color:#fff;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;box-shadow:0 2px 12px rgba(212,70,126,0.3);transition:all 0.15s;}
+.btn-primary:disabled{background:#ddd;box-shadow:none;cursor:default;}
+.btn-secondary{flex:1;padding:11px;border-radius:10px;border:1.5px solid #eee;background:#fff;font-size:12px;cursor:pointer;color:#666;font-family:inherit;transition:all 0.15s;}
+.phase{display:none;}.phase.active{display:block;}
+#phase-open{text-align:center;padding:40px 0;}
+.pack-visual{width:140px;height:200px;border-radius:16px;margin:0 auto 20px;background:linear-gradient(135deg,#D4467E,#880E4F);display:flex;align-items:center;justify-content:center;font-size:60px;cursor:pointer;box-shadow:0 8px 30px rgba(212,70,126,0.4);}
+.pack-visual.shaking{animation:bpshake 0.55s ease-in-out;}
+@keyframes bpshake{0%,100%{transform:rotate(0)}15%{transform:rotate(-6deg) scale(1.06)}30%{transform:rotate(6deg) scale(1.06)}45%{transform:rotate(-5deg) scale(1.09)}60%{transform:rotate(5deg) scale(1.06)}75%{transform:rotate(-3deg) scale(1.04)}90%{transform:rotate(3deg) scale(1.02)}}
+.tap-hint{font-size:12px;color:#aaa;animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:0.5}50%{opacity:1}}
+.cards-container{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:20px;}
+.photocard{width:105px;height:155px;border-radius:12px;overflow:hidden;flex-shrink:0;position:relative;box-shadow:0 4px 16px rgba(0,0,0,0.12);opacity:0;transform:translateY(20px) scale(0.9);transition:opacity 0.4s ease,transform 0.4s ease;cursor:zoom-in;}
+.photocard.visible{opacity:1;transform:translateY(0) scale(1);}
+.photocard.ur-glow{box-shadow:0 0 0 2px #f0a500,0 6px 24px rgba(240,165,0,0.5);}
+.photocard.sr-glow{box-shadow:0 0 0 2px #D4467E,0 6px 20px rgba(212,70,126,0.4);}
+.card-art{width:100%;height:76%;overflow:hidden;background:#f5f5f5;display:flex;align-items:center;justify-content:center;position:relative;}
+.card-art img{width:100%;height:100%;object-fit:cover;display:block;}
+.card-art-emoji{font-size:44px;}
+.card-info{padding:5px 7px;background:#880E4F;height:24%;}
+.card-member-name{font-size:9px;font-weight:700;color:#fff;}
+.card-group-name{font-size:8px;color:rgba(255,255,255,0.7);}
+.rarity-badge{position:absolute;top:5px;left:5px;font-size:8px;font-weight:700;padding:2px 5px;border-radius:4px;z-index:2;color:#fff;}
+.shine{position:absolute;inset:0;background:linear-gradient(135deg,transparent 25%,rgba(255,255,255,0.25) 50%,transparent 75%);pointer-events:none;animation:shimmer 2s ease-in-out infinite;}
+@keyframes shimmer{0%,100%{opacity:0.6}50%{opacity:1}}
+.nav-row{display:flex;gap:8px;}
+.stats-row{display:flex;gap:8px;margin-bottom:16px;}
+.stat-pill{flex:1;background:#f9f9f9;border-radius:10px;padding:10px;text-align:center;}
+.stat-val{font-size:20px;font-weight:600;}
+.stat-label{font-size:10px;color:#aaa;margin-top:2px;}
+.coll-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px;}
+.coll-card{border-radius:8px;overflow:hidden;border:1px solid #eee;aspect-ratio:9/13;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f5f5f5;position:relative;cursor:zoom-in;}
+.coll-card img{width:100%;height:78%;object-fit:cover;}
+.coll-name{font-size:8px;color:#aaa;padding:2px;text-align:center;}
+.coll-count{position:absolute;bottom:2px;right:4px;font-size:9px;font-weight:700;color:#D4467E;}
+#lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
+#lightbox.show{display:flex;}
+#lightbox-img{max-width:90vw;max-height:72vh;border-radius:12px;object-fit:contain;box-shadow:0 8px 40px rgba(0,0,0,0.6);}
+.lightbox-info{margin-top:14px;text-align:center;}
+.lightbox-name{font-size:16px;font-weight:700;color:#fff;}
+.lightbox-sub{font-size:12px;color:rgba(255,255,255,0.6);margin-top:3px;}
+.lightbox-close{margin-top:20px;padding:10px 28px;border-radius:20px;border:1px solid rgba(255,255,255,0.3);background:transparent;color:rgba(255,255,255,0.8);font-family:inherit;font-size:13px;cursor:pointer;}
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;}
+#overlay.show{display:flex;}
+.big-card{width:190px;height:275px;border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(212,70,126,0.5);animation:popIn 0.45s cubic-bezier(0.34,1.56,0.64,1) both;}
+@keyframes popIn{0%{transform:scale(0.3) rotate(-10deg);opacity:0}100%{transform:scale(1);opacity:1}}
+.big-art{width:100%;height:76%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#f5f5f5;}
+.big-art img{width:100%;height:100%;object-fit:cover;}
+.big-info{padding:10px;background:#880E4F;}
+.big-name{font-size:16px;font-weight:700;color:#fff;}
+.big-group2{font-size:11px;color:rgba(255,255,255,0.8);}
+.big-rarity{font-size:10px;color:rgba(255,255,255,0.55);margin-top:2px;}
+.overlay-label{margin-top:14px;color:rgba(255,255,255,0.75);font-size:13px;}
+.overlay-close-btn{margin-top:14px;padding:10px 28px;border-radius:20px;border:1px solid rgba(255,255,255,0.3);background:transparent;color:rgba(255,255,255,0.8);font-family:inherit;font-size:13px;cursor:pointer;}
+.confetti-piece{position:fixed;width:8px;height:8px;border-radius:2px;z-index:201;pointer-events:none;}
+@keyframes fall{to{top:110vh;opacity:0;transform:rotate(720deg);}}
+</style>
+
+<div id="app">
+  <div class="header">
+    <div><div class="header-title">🌹 K-pop Gacha</div><div class="header-sub">photocard collection</div></div>
+    <div>
+      <div class="coin-box">🪙 <span id="coins">500</span></div>
+      <div class="coin-refresh" id="refresh-label"></div>
+    </div>
+  </div>
+  <div class="phase active" id="phase-member">
+    <div class="section-label">— 選擇你要抽的成員（可多選）—</div>
+    <div class="member-grid" id="member-grid"></div>
+    <button class="btn-primary" id="btn-to-pack" disabled>選擇卡包 →</button>
+  </div>
+  <div class="phase" id="phase-pack">
+    <button class="back-btn" onclick="showPhase('phase-member')">← 返回選擇成員</button>
+    <div class="section-label">— 選擇卡包 —</div>
+    <div class="pack-grid" id="pack-grid"></div>
+    <button class="btn-primary" id="btn-open" disabled>開啟卡包 →</button>
+  </div>
+  <div class="phase" id="phase-open">
+    <div style="text-align:center;padding:40px 0;">
+      <div class="pack-visual" id="pack-visual" onclick="triggerOpen()">🌹</div>
+      <p class="tap-hint">點擊卡包開啟！</p>
+    </div>
+  </div>
+  <div class="phase" id="phase-reveal">
+    <button class="back-btn" onclick="showPhase('phase-pack');renderPacks();">← 換個卡包</button>
+    <div class="section-label">— 點擊照片放大查看 —</div>
+    <div class="cards-container" id="cards-container"></div>
+    <div class="nav-row">
+      <button class="btn-secondary" onclick="resetAndDraw()">🎴 再抽一包</button>
+      <button class="btn-secondary" onclick="showCollection()">📚 我的圖鑑</button>
+    </div>
+  </div>
+  <div class="phase" id="phase-collection">
+    <button class="back-btn" onclick="showPhase('phase-reveal')">← 返回</button>
+    <div class="section-label">— my photocard collection —</div>
+    <div class="stats-row">
+      <div class="stat-pill"><div class="stat-val" id="s-total">0</div><div class="stat-label">收藏總數</div></div>
+      <div class="stat-pill"><div class="stat-val" id="s-unique">0</div><div class="stat-label">不同成員</div></div>
+      <div class="stat-pill"><div class="stat-val" id="s-ur">0</div><div class="stat-label">UR 閃卡</div></div>
+    </div>
+    <div class="coll-grid" id="coll-grid"></div>
+    <button class="btn-primary" onclick="resetAndDraw()">繼續抽卡</button>
+  </div>
+</div>
+
+<div id="lightbox" onclick="closeLightbox()">
+  <img id="lightbox-img" src="" alt="">
+  <div class="lightbox-info">
+    <div class="lightbox-name" id="lightbox-name"></div>
+    <div class="lightbox-sub" id="lightbox-sub"></div>
+  </div>
+  <button class="lightbox-close" onclick="closeLightbox()">關閉</button>
+</div>
+
+<div id="overlay">
+  <div class="big-card" id="big-card"></div>
+  <div class="overlay-label">✨ 超稀有 UR 閃卡！</div>
+  <button class="overlay-close-btn" onclick="document.getElementById('overlay').classList.remove('show')">收下這張卡 ✓</button>
+</div>
+
+<script>
+const MEMBERS = [
+  { name:'Jisoo', role:'비주얼·보컬', emoji:'🌸', photos:[
+    'https://a.ksd-i.com/a/2025-08-08/159206-1037582.jpg',
+    'https://hips.hearstapps.com/hmg-prod/images/collageji-66894f1f2b3f5.jpg?crop=0.495xw:0.990xh;0,0&resize=1120:*',
+    'https://hips.hearstapps.com/hmg-prod/images/c-1650984800.jpg?crop=0.490xw:0.984xh;0.510xw,0.0160xh&resize=640:*',
+    'https://i.redd.it/what-can-be-soft-maxxed-to-accomplish-jisoo-of-blackpinks-v0-idn6nxz7cf581.jpg?width=1600&format=pjpg&auto=webp&s=afe5342f9c9acee18b2167aa990a4fca4770420b',
+    'https://img.ltn.com.tw/Upload/ent/page/800/2021/07/08/phpMJI9Qo.jpg',
+    'https://cdn.bella.tw/index_image/3SSHTJ32iRPv27b0SVaBLGgMfQD8aFxImWCYiC1S.jpeg',
+    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSno4rdeWl13aPRELwndVdBCZ4J4LfApNj6Ow&s',
+    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcToBDaRuoH9dJAVeW5izBirxQ6iqcj_duWxdw&s',
+    'https://preview.redd.it/250722-jisoo-app-update-blackpink-%EB%9B%B0%EC%96%B4-jump-mv-behind-v0-qaulnn5w6eef1.jpg?width=640&crop=smart&auto=webp&s=8d796f09e96d99def595291167f30b5479d48d84',
+    'https://img.voguehk.com/media/2024/05/VHK_063_IG_Coverstory6-1-1024x1280.jpg',
+    'https://cdn2.ettoday.net/images/7891/7891916.jpg',
+    'https://cdn2.ettoday.net/images/8460/8460686.jpg',
+    'https://images.chinatimes.com/newsphoto/2023-04-17/1024/20230417002846.jpg',
+    'https://megapx-assets.dcard.tw/images/38d4e5bd-c9eb-4d0a-bfd3-851f20706b69/640.jpeg',
+  ]},
+  { name:'Jennie', role:'래퍼·보컬', emoji:'💎', photos:[
+    'https://img.voguehk.com/media/2023/05/GettyImages-1486925395-853x1280.jpg',
+    'https://hips.hearstapps.com/hmg-prod/images/346226491-3516151508672328-2973656609238493679-n-6465d7ea884d7.jpg',
+    'https://cdn-origin.cool-style.com.tw/cool/2025/01/cover-jennie-billboard-2025-bb1-songyi-yoon-5-1240.jpg.webp',
+    'https://media.nownews.com/nn_media/thumbnail/2025/10/1759935902988-0609948d7bd4472cbd4b3f6f282a1c16-800x558.webp?unShow=false',
+    'https://img.skmbuy.com.tw/App_Images/727/Page/2025/0418/8f5d5e1c-e804-4686-ae82-f72a217edd82.png.webp',
+    'https://imgcdn.cna.com.tw/www/WebPhotos/800/20240709/1372x2058_wmkn_84307793523_0.jpg',
+    'https://i.pinimg.com/1200x/19/bd/8f/19bd8f6c83298fa6aa6e846a6a6eddc2.jpg',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Kim_Jennie_%28%EA%B9%80%EC%A0%9C%EB%8B%88%29_05.jpg/250px-Kim_Jennie_%28%EA%B9%80%EC%A0%9C%EB%8B%88%29_05.jpg',
+    'https://cdn2.ettoday.net/images/7204/7204346.jpg',
+    'https://hips.hearstapps.com/hmg-prod/images/ej-0249-f-1643086411.jpg?resize=980:*',
+    'https://hips.hearstapps.com/hmg-prod/images/fotojet-44-688ae6d1c4faa.jpg?crop=0.490xw:0.980xh;0,0&resize=640:*',
+    'https://imageio.forbes.com/specials-images/imageserve/647e118f40cb98c7ea13b283/0x0.jpg?format=jpg&crop=2596,1731,x0,y262,safe&height=900&width=1600&fit=bounds',
+    'https://cdn.ftvnews.com.tw/summernotefiles/News/3febbfaf-9ac1-4e19-bb82-526f06469ffe.jpg',
+    'https://hips.hearstapps.com/hmg-prod/images/cosmopolitan-2-68020b1f09e17.png?crop=0.484xw:0.967xh;0.516xw,0&resize=640:*',
+    'https://cdn2.ettoday.net/images/7892/7892507.jpg',
+    'https://pub-dc9a9c6ac2a64ba48bce426ced0ac56a.r2.dev/idols/Jennie/profile.jpg',
+  ]},
+  { name:'Rosé', role:'보컬·래퍼', emoji:'🌹', photos:[
+    'https://hips.hearstapps.com/hmg-prod/images/321209784-206286818542566-6733135170493646879-n-641453adb1455.jpg?crop=0.9992592592592593xw:1xh;center,top',
+    'https://ciaotw-com.sfo3.cdn.digitaloceanspaces.com/wp-content/uploads/2025/07/scimg10Ds0e.webp',
+    'https://image-cdn.hypb.st/https%3A%2F%2Fhk.hypebeast.com%2Ffiles%2F2024%2F09%2F27%2Frose-sign-atlantic-records-info-0.jpg?w=960&cbr=1&q=90&fit=max',
+    'https://ciaotw-com.sfo3.cdn.digitaloceanspaces.com/wp-content/uploads/2025/04/scimgVmW4q8.webp',
+    'https://media.gq.com.tw/photos/6752d9af8203a7abc8c653f9/master/w_1600%2Cc_limit/ROSE%25CC%2581%2520-%2520toxic%2520till%2520the%2520end%2520_%25E8%258F%25AF%25E7%25B4%258D%25E9%259F%25B3%25E6%25A8%2582%25E5%259C%258B%25E9%259A%259B%25E9%2583%25A8%25E6%258F%2590%25E4%25BE%259B.jpg',
+    'https://imgproxy.poponote.app/1/auto/850/0/sm/0/aHR0cHM6Ly9hc3NldHMucG9wb25vdGUuYXBwL25vdGUvNjQwNmZjOWEzYmU2NmEwNTAxNDkyZjA1L21lZGlhLzY0MDcwY2ZjNmM4YzQwMWQ3YTdjZWQ0Ng==',
+    'https://i.pinimg.com/736x/32/c9/a9/32c9a9f478c9fb1765bef8ec1368cff5.jpg',
+    'https://i.pinimg.com/236x/5c/4a/26/5c4a265403533cf46d6c35bbf8079edc.jpg',
+    'https://ciaotw-com.sfo3.cdn.digitaloceanspaces.com/wp-content/uploads/2025/08/scimgA7tb9v.webp',
+    'https://img.skmbuy.com.tw/App_Images/727/Page/2023/0718/7683837a-439b-4b05-b39f-bfdaf0eb7f94.jpg',
+    'https://media.vogue.com.tw/photos/6762687aeaad6524d384a440/master/w_2560%2Cc_limit/2188761589',
+    'https://i.pinimg.com/originals/59/f7/36/59f7362d6734b56faf9a699500fb2fc1.jpg',
+    'https://img.xingxiaoculture.com/origin/2024/09/18/def68985f814a87d6db0f148115501a71726597520.jpg',
+  ]},
+  { name:'Lisa', role:'댄서·래퍼', emoji:'👑', photos:[
+    'https://media.about.nike.com/img/2be5c200-0978-458c-ab3c-46b1fe749ad7/lisa-manopal-blackpink-nike-2.jpg?m=eyJlZGl0cyI6eyJqcGVnIjp7InF1YWxpdHkiOjEwMH0sIndlYnAiOnsicXVhbGl0eSI6MTAwfSwiZXh0cmFjdCI6eyJsZWZ0IjoxMDUyLCJ0b3AiOjAsIndpZHRoIjoxMjc1LCJoZWlnaHQiOjIxMjN9LCJyZXNpemUiOnsid2lkdGgiOjM4NDB9fX0%3D&s=362bf5196690d122aa90bc5ebe99b5a65d4d2a248613a088011dfd6b907a2e7c',
+    'https://hips.hearstapps.com/hmg-prod/images/befunky-collage-2-642164a2a3d94.jpg?crop=0.495xw:0.990xh;0,0&resize=640:*',
+    'https://assets.juksy.com/files/articles/138898/693124e7cb2f4.jpg',
+    'https://visionthai.net/wp-content/uploads/2024/02/w240213_lisa-hbo-whit-lotus_01.webp',
+    'https://xkxqjlzvieat874751.gcdn.ntruss.com/1/2026/4ef4/14ef48f7e340d895627df66993d3d8aabed916ba1743e3bc125b9cd83c4599f1f_o_st.jpg',
+    'https://cfcdn.she.com/media/she.com/2022/11/213710-213710-lalalalisa_m_366408954_1036762260831749_772900107466890283_n-1-819x1024.jpg',
+    'https://img.ltn.com.tw/Upload/ent/page/800/2026/01/12/5306812_1.jpg',
+    'https://i0.wp.com/talkacemedia.com/wp-content/uploads/2024/11/lalalalisa_m_461839828_389045227604061_4323507905809462122_n.jpg?resize=819%2C1024&quality=89&ssl=1',
+    'https://xkxqjlzvieat874751.gcdn.ntruss.com/2/2025/96fa/296fa4dc867feb02947ff77ff983d874cb34670c86b247d99c9ddd63b10da5c55_o_st.jpg',
+    'https://ciaotw-com.sfo3.cdn.digitaloceanspaces.com/wp-content/uploads/2025/10/scimg0ERU5i.webp',
+    'https://media.nownews.com/nn_media/thumbnail/2025/08/1755155672734-01248508fb20461dbd8e3067832c62cf-800x512.webp?unShow=false',
+    'https://img.kpopdata.com/upload/content/756/578/8491686c43703389c917.png',
+  ]},
+  { name:'G-DRAGON', role:'래퍼·솔로', emoji:'👑', photos:[
+    'https://media.vogue.com.tw/photos/690cb93ef70c8c224763e593/2:3/w_2560%2Cc_limit/SaveClip.App_571842091_17902223874289798_4222296932231142519_n.jpg',
+    'https://www.fetnet.net/content/dam/fetnet/user_resource/cbu/images/life-circle/life-proposal/2025/06/g_dragon/G_DRAGON.jpg',
+    'https://akcdn.detik.net.id/community/media/visual/2025/12/19/g-dragon-1766130383669_34.png?w=375',
+    'https://uc.udn.com.tw/photo/2025/01/06/2/31222496.jpg',
+    'https://i.pinimg.com/236x/7c/3a/91/7c3a91ea0c338ce621d3ed71f8db2eda.jpg',
+    'https://media.vogue.com.tw/photos/67bee033b3388fc6d6942889/master/w_1600%2Cc_limit/34220-10_V.jpg',
+    'https://hips.hearstapps.com/hmg-prod/images/savegram-app-497830362-18533525929026456-8520781906593790593-n-682ab0ed897e2.jpg?resize=980:*',
+    'https://img.skmbuy.com.tw/App_Images/727/Page/2025/0714/d9d179a0-be8a-4e91-bff2-263621383f59.png.webp',
+    'https://i.pinimg.com/236x/6a/52/53/6a525322aaf6325a3559cb853a04ecf8.jpg',
+    'https://wimg.mk.co.kr/news/cms/202506/23/news-p.v1.20250623.93750466f692407ca90bce40864c2236_P1.jpg',
+    'https://image.hkhl.hk/f/1024p0/0x0/100/none/5cdcabc29e6152f49e860a254a3d2d82/2025-08/WhatsApp_Image_2025-08-10_at_15_17_52_1_.jpeg',
+    'https://cdn.tatlerasia.com/tatlerasia/i/2025/08/07151019-gettyimages-2213387044_cover_1600x1067.jpg',
+    'https://media.gq.com.tw/photos/672ca3d54ac20ec65918adbd/master/w_1600%2Cc_limit/%25E6%2588%25AA%25E5%259C%2596%25202024-11-07%2520%25E6%2599%259A%25E4%25B8%258A7.13.37.png',
+  ]},
+];
+
+const PACKS=[
+  {id:'single',name:'싱글 팩',icon:'🃏',desc:'1張',cards:1,price:50,rateUp:false},
+  {id:'mini',name:'미니 팩',icon:'🎴',desc:'3張',cards:3,price:120,rateUp:false},
+  {id:'full',name:'풀 팩',icon:'📦',desc:'5張',cards:5,price:200,rateUp:false},
+  {id:'premium',name:'프리미엄',icon:'✨',desc:'5張+SR確定',cards:5,price:350,rateUp:true},
+];
+const RARITIES=['N','N','N','N','N','R','R','SR','SR','UR'];
+const RC={N:'rgba(100,100,100,0.85)',R:'rgba(123,94,167,0.85)',SR:'rgba(212,70,126,0.9)',UR:'linear-gradient(90deg,#f0a500,#e8491e)'};
+
+function getTodayKey(){return 'kpop_coins_'+new Date().toISOString().slice(0,10);}
+function loadCoins(){
+  try{
+    const key=getTodayKey();
+    Object.keys(localStorage).forEach(k=>{if(k.startsWith('kpop_coins_')&&k!==key)localStorage.removeItem(k);});
+    const s=localStorage.getItem(key);
+    if(s===null){localStorage.setItem(key,'500');return 500;}
+    return parseInt(s)||0;
+  }catch(e){return 500;}
+}
+function saveCoins(v){try{localStorage.setItem(getTodayKey(),String(v));}catch(e){}}
+function updateCoinDisplay(){
+  document.getElementById('coins').textContent=coins;
+  const t=new Date();t.setDate(t.getDate()+1);t.setHours(0,0,0,0);
+  const d=t-Date.now(),h=Math.floor(d/3600000),m=Math.floor((d%3600000)/60000);
+  document.getElementById('refresh-label').textContent=`每天刷新 · 剩${h}h${m}m`;
+}
+
+let coins=loadCoins();
+let selectedMembers=[],selectedPack=null,currentCards=[],collection=[],packReady=true;
+
+function $(id){return document.getElementById(id);}
+function showPhase(id){document.querySelectorAll('.phase').forEach(p=>p.classList.remove('active'));$(id).classList.add('active');}
+function pickPhoto(m){const l=m.photos.filter(u=>u.trim());return l.length?l[~~(Math.random()*l.length)]:null;}
+function resetAndDraw(){selectedPack=null;packReady=true;renderPacks();showPhase('phase-pack');$('btn-open').disabled=true;}
+
+function renderMembers(){
+  const g=$('member-grid');g.innerHTML='';
+  MEMBERS.forEach((m,i)=>{
+    const sel=selectedMembers.includes(i);
+    const d=document.createElement('div');
+    d.className='member-card'+(sel?' sel':'');
+    d.innerHTML=`<img class="member-avatar" src="${m.photos[0]}" alt="${m.name}" onerror="this.style.display='none'">
+      <div style="flex:1;min-width:0"><div class="member-name">${m.name}</div><div class="member-role">${m.role}</div><div class="member-count">${m.photos.length}張照片</div></div>
+      <div class="sel-check">✓</div>`;
+    d.onclick=()=>{const idx=selectedMembers.indexOf(i);if(idx>=0)selectedMembers.splice(idx,1);else selectedMembers.push(i);renderMembers();$('btn-to-pack').disabled=selectedMembers.length===0;};
+    g.appendChild(d);
+  });
+}
+
+function renderPacks(){
+  const g=$('pack-grid');g.innerHTML='';
+  PACKS.forEach(pk=>{
+    const ok=coins>=pk.price,sel=selectedPack&&selectedPack.id===pk.id;
+    const d=document.createElement('div');
+    d.className='pack-card'+(sel?' sel':'')+(ok?'':' disabled');
+    d.innerHTML=`<div class="pack-icon">${pk.icon}</div><div class="pack-name">${pk.name}</div><div class="pack-desc">${pk.desc}</div><div class="pack-price">${ok?'🪙 '+pk.price:'點數不足'}</div>`;
+    if(ok)d.onclick=()=>{selectedPack=pk;renderPacks();$('btn-open').disabled=false;};
+    g.appendChild(d);
+  });
+}
+
+function goToOpen(){
+  const pv=$('pack-visual');
+  pv.textContent=selectedPack.icon;
+  pv.classList.remove('shaking');
+  pv.style.pointerEvents='auto';
+  packReady=true;
+  showPhase('phase-open');
+}
+
+function triggerOpen(){
+  if(!packReady)return;
+  packReady=false;
+  const pv=$('pack-visual');
+  pv.style.pointerEvents='none';
+  pv.classList.remove('shaking');
+  void pv.offsetWidth;
+  pv.classList.add('shaking');
+  setTimeout(()=>{pv.classList.remove('shaking');doOpenPack();},600);
+}
+
+function doOpenPack(){
+  const pk=selectedPack;
+  const pool=selectedMembers.length>0?selectedMembers:MEMBERS.map((_,i)=>i);
+  currentCards=[];
+  for(let i=0;i<pk.cards;i++){
+    const mi=pool[~~(Math.random()*pool.length)];
+    const member=MEMBERS[mi];
+    let rarity=RARITIES[~~(Math.random()*RARITIES.length)];
+    if(pk.rateUp&&i===0&&(rarity==='N'||rarity==='R'))rarity='SR';
+    currentCards.push({member,rarity,imgUrl:pickPhoto(member),id:Date.now()+i});
+  }
+  coins-=pk.price;saveCoins(coins);updateCoinDisplay();
+  collection.push(...currentCards);
+  renderReveal();showPhase('phase-reveal');
+  const ur=currentCards.find(c=>c.rarity==='UR');
+  if(ur)setTimeout(()=>showUR(ur),currentCards.length*160+400);
+}
+
+function renderReveal(){
+  const c=$('cards-container');c.innerHTML='';
+  currentCards.forEach((card,i)=>{
+    const el=document.createElement('div');
+    el.className='photocard'+(card.rarity==='UR'?' ur-glow':card.rarity==='SR'?' sr-glow':'');
+    const art=card.imgUrl
+      ?`<img src="${card.imgUrl}" alt="${card.member.name}" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><span class="card-art-emoji" style="display:none">${card.member.emoji}</span>`
+      :`<span class="card-art-emoji">${card.member.emoji}</span>`;
+    el.innerHTML=`<div class="card-art">${art}<div class="rarity-badge" style="background:${RC[card.rarity]}">${card.rarity}</div>${card.rarity==='SR'||card.rarity==='UR'?'<div class="shine"></div>':''}</div><div class="card-info"><div class="card-member-name">${card.member.name}</div><div class="card-group-name">K-pop</div></div>`;
+    el.onclick=()=>openLightbox(card);
+    c.appendChild(el);
+    setTimeout(()=>el.classList.add('visible'),i*150+50);
+  });
+}
+
+function openLightbox(card){
+  const img=$('lightbox-img');
+  img.src=card.imgUrl||'';
+  img.style.display=card.imgUrl?'block':'none';
+  $('lightbox-name').textContent=card.member.name;
+  $('lightbox-sub').textContent='K-pop · '+card.rarity+' · '+card.member.role;
+  $('lightbox').classList.add('show');
+}
+function closeLightbox(){$('lightbox').classList.remove('show');}
+
+function showUR(card){
+  const bc=$('big-card');
+  bc.innerHTML=`<div class="big-art">${card.imgUrl?`<img src="${card.imgUrl}" alt="${card.member.name}">`:`<span style="font-size:80px">${card.member.emoji}</span>`}</div><div class="big-info"><div class="big-name">${card.member.name}</div><div class="big-group2">K-pop</div><div class="big-rarity">UR · ${card.member.role}</div></div>`;
+  $('overlay').classList.add('show');
+  launchConfetti();
+}
+
+function launchConfetti(){
+  const colors=['#D4467E','#880E4F','#FF8FAB','#FFD6E0','#fff','#f0a500'];
+  for(let i=0;i<60;i++){
+    const c=document.createElement('div');c.className='confetti-piece';
+    c.style.cssText=`left:${Math.random()*100}vw;top:-10px;background:${colors[~~(Math.random()*colors.length)]};transform:rotate(${Math.random()*360}deg);animation:fall ${1+Math.random()*2}s ease ${Math.random()*0.5}s forwards;`;
+    document.body.appendChild(c);setTimeout(()=>c.remove(),3000);
+  }
+}
+
+function showCollection(){
+  const cm={};
+  collection.forEach(c=>{if(!cm[c.member.name])cm[c.member.name]={card:c,count:0};cm[c.member.name].count++;});
+  $('s-total').textContent=collection.length;
+  $('s-unique').textContent=Object.keys(cm).length;
+  $('s-ur').textContent=collection.filter(c=>c.rarity==='UR').length;
+  const g=$('coll-grid');g.innerHTML='';
+  if(!Object.keys(cm).length){g.innerHTML=`<div style="grid-column:1/-1;text-align:center;color:#aaa;padding:2rem;font-size:13px">尚未收藏任何小卡</div>`;}
+  else{Object.values(cm).forEach(({card,count})=>{
+    const el=document.createElement('div');el.className='coll-card';
+    el.innerHTML=(card.imgUrl?`<img src="${card.imgUrl}" alt="${card.member.name}">`:`<span style="font-size:22px">${card.member.emoji}</span>`)+`<div class="coll-name">${card.member.name}</div>`+(count>1?`<div class="coll-count">×${count}</div>`:'');
+    el.onclick=()=>openLightbox(card);
+    g.appendChild(el);
+  });}
+  showPhase('phase-collection');
+}
+
+$('btn-to-pack').onclick=()=>{renderPacks();showPhase('phase-pack');};
+$('btn-open').onclick=()=>goToOpen();
+updateCoinDisplay();setInterval(updateCoinDisplay,60000);
+renderMembers();
+</script>
